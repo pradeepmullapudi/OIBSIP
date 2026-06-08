@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pradeep Mullapudi — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; font-family: 'Inter', sans-serif; }
+
+    body { background: #ffffff; color: #111827; line-height: 1.6; }
+
+    /* ── Navbar ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 64px; display: flex; align-items: center;
+      padding: 0 2rem;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e5e7eb;
+      justify-content: space-between;
+      animation: fadeDown 0.5s ease forwards;
+    }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+
+    .nav-logo { font-size: 1.2rem; font-weight: 700; color: #2563eb; text-decoration: none; }
+
+    .nav-links { display: flex; gap: 1.75rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500; color: #64748b;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #111827; }
+
+    .hamburger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: #111827; border-radius: 2px; transition: 0.3s; }
+
+    .mobile-menu {
+      display: none; flex-direction: column; gap: 1rem;
+      position: fixed; top: 64px; left: 0; right: 0;
+      background: white; padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      z-index: 99;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-size: 0.95rem; font-weight: 500; color: #64748b; text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+    }
+
+    /* ── Sections ── */
+    section { padding: 5rem 2rem; }
+    .container { max-width: 1120px; margin: 0 auto; }
+
+    .section-title {
+      font-size: 2rem; font-weight: 700; color: #111827;
+      margin-bottom: 3rem; letter-spacing: -0.02em;
+    }
+
+    /* ── Fade-in animation ── */
+    .fade-in {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-radius: 0.625rem;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; border: none;
+    }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline { background: #fff; color: #111827; border: 1.5px solid #d1d5db; }
+    .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+    .btn-ghost { background: transparent; color: #64748b; }
+    .btn-ghost:hover { color: #111827; }
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+    /* ── Hero ── */
+    #home {
+      min-height: 100vh; background: #ffffff;
+      padding-top: 6rem; display: flex; align-items: center;
+    }
+    .hero-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 3rem; flex-wrap: wrap;
+    }
+    .hero-text { flex: 1; min-width: 280px; }
+    .hero-text h1 {
+      font-size: clamp(2.5rem, 5vw, 3.75rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      color: #111827; margin-bottom: 0.75rem;
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .hero-text h2 {
+      font-size: 1.3rem; font-weight: 500; color: #64748b;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.6s ease 0.1s forwards; opacity: 0;
+    }
+    .hero-text p {
+      font-size: 1.05rem; color: #64748b; max-width: 500px;
+      line-height: 1.7; margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease 0.2s forwards; opacity: 0;
+    }
+    .hero-btns {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      animation: fadeUp 0.6s ease 0.3s forwards; opacity: 0;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero-photo {
+      flex: 0 0 400px; max-width: 400px; position: relative;
+      animation: fadeScale 0.7s ease 0.2s forwards; opacity: 0;
+    }
+    @keyframes fadeScale {
+      from { opacity:0; transform:scale(0.95); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    .hero-photo-bg {
+      position: absolute; inset: 0; background: #eff6ff;
+      border-radius: 50%; filter: blur(48px); transform: scale(0.9); z-index: 0;
+    }
+    .hero-photo img {
+      position: relative; z-index: 1;
+      width: 100%; border-radius: 1.5rem;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.15); object-fit: cover;
+    }
+
+    @media (max-width: 900px) {
+      .hero-inner { flex-direction: column-reverse; text-align: center; }
+      .hero-text { text-align: center; }
+      .hero-btns { justify-content: center; }
+      .hero-photo { flex: none; max-width: 280px; }
+    }
+
+    /* ── About ── */
+    #about { background: #f8f9fa; }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    .about-text { font-size: 1rem; color: #64748b; line-height: 1.8; }
+    .about-text p + p { margin-top: 1rem; }
+    .about-cards { display: grid; gap: 1rem; }
+    .about-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem;
+      padding: 1.25rem 1.5rem; transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .about-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .about-card h3 { font-size: 0.9rem; font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
+    .about-card p { font-size: 0.875rem; color: #64748b; }
+
+    @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr; } }
+
+    /* ── Skills ── */
+    #skills { background: #ffffff; }
+    .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .skill-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem;
+      padding: 1.5rem; transition: box-shadow 0.2s, transform 0.2s;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .skill-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .skill-icon {
+      width: 48px; height: 48px; background: #f1f5f9;
+      border-radius: 0.625rem; display: flex; align-items: center; justify-content: center;
+    }
+    .skill-icon svg { width: 24px; height: 24px; stroke: #2563eb; fill: none; stroke-width: 1.5; }
+    .skill-card h3 { font-size: 1rem; font-weight: 600; color: #111827; }
+    .skill-card p { font-size: 0.85rem; color: #64748b; line-height: 1.6; }
+
+    @media (max-width: 900px) { .skills-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 560px) { .skills-grid { grid-template-columns: 1fr; } }
+
+    /* ── Projects ── */
+    #projects { background: #f8f9fa; }
+    .projects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .project-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem;
+      overflow: hidden; transition: box-shadow 0.2s, transform 0.2s;
+      display: flex; flex-direction: column;
+    }
+    .project-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .project-img { width: 100%; aspect-ratio: 16/9; }
+    .project-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+    .project-body h3 { font-size: 1.1rem; font-weight: 600; color: #111827; }
+    .project-body p { font-size: 0.875rem; color: #64748b; line-height: 1.6; flex: 1; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .tag {
+      padding: 0.2rem 0.65rem; background: #f1f5f9; color: #475569;
+      border-radius: 9999px; font-size: 0.75rem; font-weight: 500;
+    }
+    .project-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+
+    @media (max-width: 700px) { .projects-grid { grid-template-columns: 1fr; } }
+
+    /* ── Certifications ── */
+    #certifications { background: #ffffff; }
+    .certs-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .cert-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem;
+      padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .cert-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .cert-icon { color: #2563eb; }
+    .cert-icon svg { width: 32px; height: 32px; stroke: #2563eb; fill: none; stroke-width: 1.5; }
+    .cert-card h3 { font-size: 1rem; font-weight: 600; color: #111827; }
+    .cert-card p { font-size: 0.85rem; color: #64748b; flex: 1; }
+
+    @media (max-width: 900px) { .certs-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 560px) { .certs-grid { grid-template-columns: 1fr; } }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 1rem; padding: 2rem;
+      max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .modal h3 { font-size: 1.2rem; font-weight: 700; color: #111827; margin-bottom: 0.25rem; }
+    .modal p { font-size: 0.875rem; color: #64748b; margin-bottom: 1.25rem; }
+    .modal-placeholder {
+      width: 100%; aspect-ratio: 16/9; background: #f1f5f9;
+      border: 1px solid #e5e7eb; border-radius: 0.625rem;
+      display: flex; align-items: center; justify-content: center;
+      color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.25rem;
+    }
+    .modal-close { float: right; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #9ca3af; line-height: 1; }
+
+    /* ── Resume ── */
+    #resume { background: #f8f9fa; }
+    .resume-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+    .resume-section + .resume-section { margin-top: 2.5rem; }
+    .resume-section h3 {
+      font-size: 1.1rem; font-weight: 600; color: #111827;
+      border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.25rem;
+    }
+    .resume-entry { margin-bottom: 1.25rem; }
+    .resume-entry-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+    .resume-entry h4 { font-size: 0.95rem; font-weight: 600; color: #111827; }
+    .resume-entry .date { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
+    .resume-entry .sub { font-size: 0.875rem; color: #64748b; margin-bottom: 0.4rem; }
+    .resume-entry ul { list-style: disc; padding-left: 1.25rem; }
+    .resume-entry ul li { font-size: 0.875rem; color: #64748b; margin-bottom: 0.2rem; }
+    .skill-list { list-style: none; padding: 0; }
+    .skill-list li { font-size: 0.875rem; color: #64748b; padding: 0.4rem 0; border-bottom: 1px solid #f1f5f9; }
+    .skill-list li strong { color: #374151; }
+
+    /* ── Contact ── */
+    #contact { background: #ffffff; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; }
+    .contact-info p { font-size: 1rem; color: #64748b; line-height: 1.7; margin-bottom: 2rem; }
+    .contact-link {
+      display: flex; align-items: center; gap: 1rem;
+      color: #64748b; text-decoration: none;
+      margin-bottom: 1.25rem; transition: color 0.2s;
+      font-size: 0.9rem;
+    }
+    .contact-link:hover { color: #111827; }
+    .contact-link-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #f8f9fa; border: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .contact-link-icon svg { width: 18px; height: 18px; stroke: #64748b; fill: none; stroke-width: 1.5; }
+
+    form { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.85rem; font-weight: 500; color: #374151; }
+    .form-group input, .form-group textarea {
+      padding: 0.625rem 0.875rem; border: 1px solid #d1d5db;
+      border-radius: 0.5rem; font-size: 0.9rem; font-family: inherit;
+      color: #111827; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .form-group textarea { min-height: 150px; resize: vertical; }
+    .form-error { font-size: 0.78rem; color: #dc2626; }
+    .success-msg {
+      display: none; background: #ecfdf5; border: 1px solid #6ee7b7;
+      color: #065f46; padding: 1.25rem 1.5rem; border-radius: 0.75rem;
+      align-items: center; gap: 0.75rem; font-weight: 500;
+    }
+    .success-msg.show { display: flex; }
+    .success-msg svg { width: 24px; height: 24px; stroke: #059669; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    @media (max-width: 768px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: #111827; color: #fff;
+      padding: 3rem 2rem; text-align: center;
+    }
+    footer h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    footer .tagline { color: #9ca3af; font-size: 0.9rem; max-width: 320px; margin: 0 auto 1.75rem; }
+    .footer-socials { display: flex; justify-content: center; gap: 1.25rem; margin-bottom: 1.75rem; }
+    .footer-socials a { color: #9ca3af; transition: color 0.2s; }
+    .footer-socials a:hover { color: #fff; }
+    .footer-socials svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    footer .copy { font-size: 0.8rem; color: #6b7280; }
+
+    /* ── Scroll progress bar ── */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: #2563eb; z-index: 200; width: 0%;
+      transition: width 0.1s linear;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress-bar"></div>
+
+<!-- Navbar -->
+<nav>
+  <a href="#home" class="nav-logo">PM</a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#certifications">Certifications</a></li>
+    <li><a href="#resume">Resume</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#about" onclick="closeMenu()">About</a>
+  <a href="#skills" onclick="closeMenu()">Skills</a>
+  <a href="#projects" onclick="closeMenu()">Projects</a>
+  <a href="#certifications" onclick="closeMenu()">Certifications</a>
+  <a href="#resume" onclick="closeMenu()">Resume</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+</div>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section id="home">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1>Pradeep Mullapudi</h1>
+        <h2>CSE (AI) Student</h2>
+        <p>A passionate developer interested in Artificial Intelligence, Machine Learning, Full Stack Development, and building impactful software solutions.</p>
+        <div class="hero-btns">
+          <a href="#projects" class="btn btn-primary">View Projects</a>
+          <a href="#resume" class="btn btn-outline">Download Resume</a>
+          <a href="#contact" class="btn btn-ghost">Contact Me →</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <div class="hero-photo-bg"></div>
+        <img src="pradeep-profile.png" alt="Pradeep Mullapudi" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ ABOUT ══════════════ -->
+<section id="about">
+  <div class="container fade-in">
+    <h2 class="section-title">About Me</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>Hello! I'm Pradeep, a student pursuing my B.Tech in Computer Science and Engineering with a specialization in Artificial Intelligence. I am constantly fascinated by how technology can solve real-world problems.</p>
+        <p>My journey into software development started with a deep curiosity for algorithms and data structures, which quickly evolved into a passion for building full-stack applications and experimenting with machine learning models.</p>
+        <p>Currently, I'm focusing on expanding my skills in modern web development frameworks and diving deeper into AI capabilities, always looking for new challenges and opportunities to learn and grow.</p>
+      </div>
+      <div class="about-cards">
+        <div class="about-card">
+          <h3>Education</h3>
+          <p>B.Tech CSE (AI) — Sri Vasavi Engineering College, 2024–2028</p>
+        </div>
+        <div class="about-card">
+          <h3>Interests</h3>
+          <p>Artificial Intelligence, Machine Learning, Full Stack Development</p>
+        </div>
+        <div class="about-card">
+          <h3>Goal</h3>
+          <p>Build impactful software solutions that solve real-world problems</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SKILLS ══════════════ -->
+<section id="skills">
+  <div class="container fade-in">
+    <h2 class="section-title">Skills</h2>
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div>
+          <h3>Java</h3>
+          <p>Object-oriented programming, Data Structures, JDBC, Swing desktop apps</p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <div>
+          <h3>Python</h3>
+          <p>Scripting, Data Analysis, Machine Learning pipelines, Pandas, NumPy</p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div>
+          <h3>Full Stack Development</h3>
+          <p>HTML, CSS, JavaScript, React, Node.js, Express, REST APIs</p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <div>
+          <h3>DBMS &amp; SQL</h3>
+          <p>Relational databases, MySQL, query optimization, normalization</p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div>
+          <h3>Machine Learning</h3>
+          <p>scikit-learn, Pandas, predictive modeling, data preprocessing</p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">
+          <svg viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        </div>
+        <div>
+          <h3>Data Structures</h3>
+          <p>Algorithm design, complexity analysis, problem solving, competitive coding</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ PROJECTS ══════════════ -->
+<section id="projects">
+  <div class="container fade-in">
+    <h2 class="section-title">Projects</h2>
+    <div class="projects-grid">
+
+      <div class="project-card">
+        <div class="project-img" style="background: linear-gradient(135deg, #dbeafe, #e0e7ff);"></div>
+        <div class="project-body">
+          <h3>Student Management System</h3>
+          <p>A comprehensive desktop application for managing student records, attendance, and grades with a SQL database backend using JDBC.</p>
+          <div class="tags">
+            <span class="tag">Java</span><span class="tag">SQL</span><span class="tag">Swing</span>
+          </div>
+          <div class="project-actions">
+            <a href="https://github.com/pradeepmullapudi" target="_blank" class="btn btn-outline btn-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub
+            </a>
+            <a href="#" class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Live Demo
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-img" style="background: linear-gradient(135deg, #d1fae5, #ccfbf1);"></div>
+        <div class="project-body">
+          <h3>ML Prediction Model</h3>
+          <p>A machine learning pipeline built with Python and scikit-learn to analyze and predict trends from structured datasets with high accuracy.</p>
+          <div class="tags">
+            <span class="tag">Python</span><span class="tag">scikit-learn</span><span class="tag">Pandas</span>
+          </div>
+          <div class="project-actions">
+            <a href="https://github.com/pradeepmullapudi" target="_blank" class="btn btn-outline btn-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub
+            </a>
+            <a href="#" class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Live Demo
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-img" style="background: linear-gradient(135deg, #ede9fe, #fce7f3);"></div>
+        <div class="project-body">
+          <h3>Portfolio Website</h3>
+          <p>A clean, modern, and responsive personal portfolio website to showcase skills, projects, and certifications to recruiters.</p>
+          <div class="tags">
+            <span class="tag">React</span><span class="tag">Tailwind CSS</span><span class="tag">Framer Motion</span>
+          </div>
+          <div class="project-actions">
+            <a href="https://github.com/pradeepmullapudi" target="_blank" class="btn btn-outline btn-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub
+            </a>
+            <a href="#" class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Live Demo
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-img" style="background: linear-gradient(135deg, #ffedd5, #ffe4e6);"></div>
+        <div class="project-body">
+          <h3>Full Stack Web Application</h3>
+          <p>A complete web solution featuring a React frontend, Node.js backend, and MongoDB database for seamless end-to-end data flow.</p>
+          <div class="tags">
+            <span class="tag">React</span><span class="tag">Node.js</span><span class="tag">MongoDB</span>
+          </div>
+          <div class="project-actions">
+            <a href="https://github.com/pradeepmullapudi" target="_blank" class="btn btn-outline btn-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub
+            </a>
+            <a href="#" class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Live Demo
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CERTIFICATIONS ══════════════ -->
+<section id="certifications">
+  <div class="container fade-in">
+    <h2 class="section-title">Certifications</h2>
+    <div class="certs-grid">
+
+      <div class="cert-card">
+        <div class="cert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <h3>Java Programming</h3>
+        <p>Coursera &bull; 2023</p>
+        <button class="btn btn-outline btn-sm" onclick="openModal('Java Programming','Coursera','2023')">View Certificate</button>
+      </div>
+
+      <div class="cert-card">
+        <div class="cert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <h3>Python Fundamentals</h3>
+        <p>Udemy &bull; 2023</p>
+        <button class="btn btn-outline btn-sm" onclick="openModal('Python Fundamentals','Udemy','2023')">View Certificate</button>
+      </div>
+
+      <div class="cert-card">
+        <div class="cert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <h3>Full Stack Development</h3>
+        <p>freeCodeCamp &bull; 2024</p>
+        <button class="btn btn-outline btn-sm" onclick="openModal('Full Stack Development','freeCodeCamp','2024')">View Certificate</button>
+      </div>
+
+      <div class="cert-card">
+        <div class="cert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <h3>Database Management</h3>
+        <p>Oracle &bull; 2023</p>
+        <button class="btn btn-outline btn-sm" onclick="openModal('Database Management','Oracle','2023')">View Certificate</button>
+      </div>
+
+      <div class="cert-card">
+        <div class="cert-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <h3>Machine Learning</h3>
+        <p>Stanford Online &bull; 2024</p>
+        <button class="btn btn-outline btn-sm" onclick="openModal('Machine Learning','Stanford Online','2024')">View Certificate</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Certificate Modal -->
+<div class="modal-overlay" id="certModal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">&times;</button>
+    <h3 id="modalTitle"></h3>
+    <p id="modalSub"></p>
+    <div class="modal-placeholder">Certificate Preview</div>
+    <button class="btn btn-outline" onclick="closeModalBtn()">Close</button>
+  </div>
+</div>
+
+<!-- ══════════════ RESUME ══════════════ -->
+<section id="resume">
+  <div class="container fade-in">
+    <div class="resume-header">
+      <h2 class="section-title" style="margin-bottom:0">Resume</h2>
+      <a href="#" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </a>
+    </div>
+
+    <div class="resume-section">
+      <h3>Education</h3>
+      <div class="resume-entry">
+        <div class="resume-entry-header">
+          <h4>B.Tech in Computer Science Engineering (AI)</h4>
+          <span class="date">2024 – 2028</span>
+        </div>
+        <p class="sub">Sri Vasavi Engineering College, Tadepalligudem</p>
+      </div>
+    </div>
+
+    <div class="resume-section">
+      <h3>Technical Skills</h3>
+      <ul class="skill-list">
+        <li><strong>Languages:</strong> Java, Python, JavaScript, TypeScript</li>
+        <li><strong>Web Technologies:</strong> React, Node.js, Express, HTML, CSS, Tailwind CSS</li>
+        <li><strong>Databases:</strong> MySQL, MongoDB</li>
+        <li><strong>Tools &amp; Frameworks:</strong> Git, GitHub, scikit-learn, Pandas</li>
+      </ul>
+    </div>
+
+    <div class="resume-section">
+      <h3>Projects</h3>
+      <div class="resume-entry">
+        <h4>Student Management System</h4>
+        <p class="sub">Java, SQL, Swing</p>
+        <ul>
+          <li>Developed a comprehensive desktop application for student records</li>
+          <li>Implemented secure database connections using JDBC</li>
+        </ul>
+      </div>
+      <div class="resume-entry" style="margin-top:1rem">
+        <h4>ML Prediction Model</h4>
+        <p class="sub">Python, scikit-learn</p>
+        <ul>
+          <li>Designed a machine learning pipeline for predictive analysis</li>
+          <li>Achieved high accuracy through rigorous data cleaning and model tuning</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="resume-section">
+      <h3>Achievements</h3>
+      <ul class="skill-list">
+        <li>Participated in regional coding hackathons</li>
+        <li>Completed multiple certified courses in emerging technologies</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ CONTACT ══════════════ -->
+<section id="contact">
+  <div class="container fade-in">
+    <h2 class="section-title">Get In Touch</h2>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p>I'm always open to new opportunities, collaborations, or just a friendly chat about technology and AI. Feel free to reach out!</p>
+        <a href="mailto:pradeepmullapudi2006@gmail.com" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          pradeepmullapudi2006@gmail.com
+        </a>
+        <a href="https://linkedin.com/in/pradeepmullapudi" target="_blank" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </div>
+          linkedin.com/in/pradeepmullapudi
+        </a>
+        <a href="https://github.com/pradeepmullapudi" target="_blank" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          </div>
+          github.com/pradeepmullapudi
+        </a>
+      </div>
+
+      <div>
+        <div class="success-msg" id="successMsg">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Message sent successfully! I'll get back to you soon.
+        </div>
+        <form id="contactForm" onsubmit="submitForm(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" placeholder="John Doe" />
+              <span class="form-error" id="nameErr"></span>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="john@example.com" />
+              <span class="form-error" id="emailErr"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" placeholder="Project Inquiry" />
+            <span class="form-error" id="subjectErr"></span>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" placeholder="How can I help you?"></textarea>
+            <span class="form-error" id="messageErr"></span>
+          </div>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <h2>Pradeep Mullapudi</h2>
+  <p class="tagline">Building impactful software solutions and exploring the world of Artificial Intelligence.</p>
+  <div class="footer-socials">
+    <a href="https://github.com/pradeepmullapudi" target="_blank" aria-label="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+    </a>
+    <a href="https://linkedin.com/in/pradeepmullapudi" target="_blank" aria-label="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+    </a>
+    <a href="mailto:pradeepmullapudi2006@gmail.com" aria-label="Email">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    </a>
+  </div>
+  <p class="copy">&copy; <span id="year"></span> Pradeep Mullapudi. All rights reserved.</p>
+</footer>
+
+<script>
+  // Year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Scroll progress bar
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('progress-bar').style.width = (scrolled / total * 100) + '%';
+  });
+
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Mobile menu
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  function closeMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+
+  // Certification Modal
+  function openModal(title, issuer, date) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalSub').textContent = 'Issued by ' + issuer + ' in ' + date;
+    document.getElementById('certModal').classList.add('open');
+  }
+  function closeModalBtn() { document.getElementById('certModal').classList.remove('open'); }
+  function closeModal(e) { if (e.target === document.getElementById('certModal')) closeModalBtn(); }
+
+  // Contact form validation
+  function submitForm(e) {
+    e.preventDefault();
+    let valid = true;
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    document.getElementById('nameErr').textContent = '';
+    document.getElementById('emailErr').textContent = '';
+    document.getElementById('subjectErr').textContent = '';
+    document.getElementById('messageErr').textContent = '';
+
+    if (name.length < 2) { document.getElementById('nameErr').textContent = 'Name is required'; valid = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('emailErr').textContent = 'Invalid email address'; valid = false; }
+    if (subject.length < 2) { document.getElementById('subjectErr').textContent = 'Subject is required'; valid = false; }
+    if (message.length < 10) { document.getElementById('messageErr').textContent = 'Message must be at least 10 characters'; valid = false; }
+
+    if (valid) {
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('successMsg').classList.add('show');
+      setTimeout(() => {
+        document.getElementById('successMsg').classList.remove('show');
+        document.getElementById('contactForm').style.display = 'flex';
+        document.getElementById('contactForm').reset();
+      }, 5000);
+    }
+  }
+</script>
+</body>
+</html>
