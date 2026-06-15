@@ -346,20 +346,16 @@
         <div class="glass-card" style="display:flex; flex-direction:column; align-items:center; gap:1rem;">
           <div class="section-label" style="align-self:flex-start;">Temperature Gauge</div>
           <svg id="gauge-svg" viewBox="0 0 200 130" style="width:220px; max-width:100%; user-select:none; overflow:visible;" role="img" aria-label="Temperature gauge">
-            <!-- Static background arcs -->
-            <path d="M 28.28 100 A 76 76 0 0 1 57.14 57.14" fill="none" stroke="#bfdbfe" stroke-width="13" stroke-linecap="round"/>
-            <path d="M 57.14 57.14 A 76 76 0 0 1 100 24" fill="none" stroke="#bae6fd" stroke-width="13" stroke-linecap="round"/>
-            <path d="M 100 24 A 76 76 0 0 1 142.86 57.14" fill="none" stroke="#a7f3d0" stroke-width="13" stroke-linecap="round"/>
-            <path d="M 142.86 57.14 A 76 76 0 0 1 171.72 100" fill="none" stroke="#fde68a" stroke-width="13" stroke-linecap="round"/>
-            <path d="M 171.72 100 A 76 76 0 0 1 171.72 100" fill="none" stroke="#fca5a5" stroke-width="13" stroke-linecap="round"/>
-            <!-- Active arcs - updated by JS -->
+            <!-- Background arcs — drawn by JS on init -->
+            <g id="gauge-bg-arcs"></g>
+            <!-- Active fill arcs — updated by JS on each conversion -->
             <g id="gauge-active-arcs"></g>
-            <!-- Needle -->
-            <line id="gauge-needle" x1="100" y1="102" x2="100" y2="44" stroke="#475569" stroke-width="2.5" stroke-linecap="round" style="transition: all .5s cubic-bezier(.22,1,.36,1);"/>
-            <circle cx="100" cy="102" r="5" fill="#475569" id="gauge-hub"/>
+            <!-- Needle — tip initialised by JS -->
+            <line id="gauge-needle" x1="100" y1="100" x2="46.26" y2="153.74" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round" style="transition: x2 .5s cubic-bezier(.22,1,.36,1), y2 .5s cubic-bezier(.22,1,.36,1);"/>
+            <circle id="gauge-hub" cx="100" cy="100" r="5.5" fill="#e2e8f0"/>
             <!-- Labels -->
-            <text x="22" y="124" font-size="8" fill="rgba(255,255,255,.4)" font-family="Inter,system-ui">-60°C</text>
-            <text x="150" y="124" font-size="8" fill="rgba(255,255,255,.4)" font-family="Inter,system-ui">100°C</text>
+            <text x="22" y="126" font-size="8" fill="rgba(255,255,255,.38)" font-family="Inter,system-ui">-60°C</text>
+            <text x="150" y="126" font-size="8" fill="rgba(255,255,255,.38)" font-family="Inter,system-ui">100°C</text>
           </svg>
           <div id="gauge-label" style="display:flex; align-items:center; gap:.6rem; color:white;">
             <span id="gauge-icon" style="font-size:1.5rem;">🌡️</span>
@@ -555,48 +551,84 @@ function setParticles(zone) {
 }
 
 /* ── Gauge ───────────────────────────────────────────────────────────────── */
+const CX = 100, CY = 100, R = 76, NEEDLE_LEN = 58;
+
 const gaugeZoneData = [
-  { from: -135, to: -81,  fill: '#3b82f6' },
-  { from: -81,  to: -27,  fill: '#0ea5e9' },
-  { from: -27,  to:  27,  fill: '#10b981' },
-  { from:  27,  to:  81,  fill: '#f59e0b' },
-  { from:  81,  to: 135,  fill: '#ef4444' }
+  { from: -135, to: -81,  bg: '#bfdbfe', fill: '#3b82f6' },
+  { from: -81,  to: -27,  bg: '#bae6fd', fill: '#0ea5e9' },
+  { from: -27,  to:  27,  bg: '#a7f3d0', fill: '#10b981' },
+  { from:  27,  to:  81,  bg: '#fde68a', fill: '#f59e0b' },
+  { from:  81,  to: 135,  bg: '#fca5a5', fill: '#ef4444' }
 ];
 
-function arcPath(s, e, r) {
-  r = r || 76;
-  const rad = d => ((d - 90) * Math.PI) / 180;
-  const x1 = 100 + r * Math.cos(rad(s)), y1 = 100 + r * Math.sin(rad(s));
-  const x2 = 100 + r * Math.cos(rad(e)), y2 = 100 + r * Math.sin(rad(e));
-  const lg = Math.abs(e - s) > 180 ? 1 : 0;
-  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${lg} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+/* Convert gauge-angle-degrees → SVG x,y from center */
+function gaugePoint(deg, radius) {
+  radius = radius || R;
+  const rad = (deg - 90) * Math.PI / 180;
+  return {
+    x: CX + radius * Math.cos(rad),
+    y: CY + radius * Math.sin(rad)
+  };
+}
+
+/* Build an SVG arc path string between two gauge angles */
+function arcPath(fromDeg, toDeg, radius) {
+  radius = radius || R;
+  const p1 = gaugePoint(fromDeg, radius);
+  const p2 = gaugePoint(toDeg,   radius);
+  const large = Math.abs(toDeg - fromDeg) > 180 ? 1 : 0;
+  return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${radius} ${radius} 0 ${large} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+}
+
+/* Draw the static dim background arcs once on startup */
+function initGaugeBackground() {
+  const bg = document.getElementById('gauge-bg-arcs');
+  bg.innerHTML = '';
+  gaugeZoneData.forEach(z => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', arcPath(z.from, z.to));
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', z.bg);
+    p.setAttribute('stroke-width', '13');
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('opacity', '0.45');
+    bg.appendChild(p);
+  });
 }
 
 function updateGauge(celsius) {
   const clamp = Math.min(Math.max(celsius, -60), 100);
-  const pct   = (clamp + 60) / 160;
-  const angle = -135 + pct * 270;
-  const rad   = (angle - 90) * Math.PI / 180;
-  const nx    = 100 + 56 * Math.cos(rad);
-  const ny    = 100 + 56 * Math.sin(rad);
+  const pct   = (clamp + 60) / 160;          // 0 → 1
+  const angle = -135 + pct * 270;             // -135° … +135°
 
-  gaugeNeedle.setAttribute('x2', nx.toFixed(2));
-  gaugeNeedle.setAttribute('y2', ny.toFixed(2));
+  /* Move needle tip */
+  const tip = gaugePoint(angle, NEEDLE_LEN);
+  gaugeNeedle.setAttribute('x2', tip.x.toFixed(2));
+  gaugeNeedle.setAttribute('y2', tip.y.toFixed(2));
 
+  /* Redraw colored active arcs up to current angle */
   gaugeActive.innerHTML = '';
+  let needleColor = '#e2e8f0';
   gaugeZoneData.forEach(z => {
-    const end = Math.min(z.to, angle);
-    if (end <= z.from) return;
+    const arcEnd = Math.min(z.to, angle);
+    if (arcEnd <= z.from) return;
     const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    p.setAttribute('d', arcPath(z.from, end));
+    p.setAttribute('d', arcPath(z.from, arcEnd));
     p.setAttribute('fill', 'none');
     p.setAttribute('stroke', z.fill);
     p.setAttribute('stroke-width', '13');
     p.setAttribute('stroke-linecap', 'round');
-    p.style.transition = 'all .48s cubic-bezier(.22,1,.36,1)';
     gaugeActive.appendChild(p);
+    needleColor = z.fill;   // last touched zone wins
   });
+
+  /* Colour needle + hub to match active zone */
+  gaugeNeedle.setAttribute('stroke', needleColor);
+  gaugeHub.setAttribute('fill', needleColor);
 }
+
+/* Initialise background arcs immediately */
+initGaugeBackground();
 
 /* ── Mood Banner ─────────────────────────────────────────────────────────── */
 function updateMood(zone, celsius) {
