@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temperature Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ───────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { min-height: 100dvh; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* ── App Shell ───────────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      min-height: 100dvh;
+      transition: background 1.2s cubic-bezier(.22,1,.36,1);
+      overflow: hidden;
+    }
+
+    /* ── Zone Backgrounds ────────────────────────────────────────────── */
+    #app.zone-none         { background: linear-gradient(135deg,#dbeafe 0%,#ede9fe 50%,#e0f2fe 100%); }
+    #app.zone-extreme-cold { background: linear-gradient(160deg,#0c1a3d 0%,#1a3a6b 35%,#1e5291 60%,#1a7ab5 100%); }
+    #app.zone-cold         { background: linear-gradient(160deg,#1a3a5c 0%,#2a5f8a 40%,#3d8bb5 70%,#6ab3d5 100%); }
+    #app.zone-pleasant     { background: linear-gradient(160deg,#164e63 0%,#0e7490 30%,#22c55e 65%,#86efac 100%); }
+    #app.zone-hot          { background: linear-gradient(160deg,#7c2d12 0%,#c2410c 30%,#ea580c 60%,#fbbf24 100%); }
+    #app.zone-extreme-hot  { background: linear-gradient(160deg,#450a0a 0%,#991b1b 30%,#dc2626 55%,#f97316 80%,#fde047 100%); }
+
+    /* dark variants */
+    body.dark #app.zone-none         { background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0c2340 100%); }
+    body.dark #app.zone-extreme-cold { background: linear-gradient(160deg,#020b1a 0%,#0a1e3d 40%,#0d3261 100%); }
+    body.dark #app.zone-cold         { background: linear-gradient(160deg,#0a1929 0%,#132f4a 40%,#1a4a6e 100%); }
+    body.dark #app.zone-pleasant     { background: linear-gradient(160deg,#052e16 0%,#065f46 40%,#064e3b 100%); }
+    body.dark #app.zone-hot          { background: linear-gradient(160deg,#431407 0%,#7c2d12 35%,#9a3412 70%,#b45309 100%); }
+    body.dark #app.zone-extreme-hot  { background: linear-gradient(160deg,#1c0505 0%,#450a0a 30%,#7f1d1d 60%,#c2410c 100%); }
+
+    /* ── Overlay ─────────────────────────────────────────────────────── */
+    #overlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background: linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.2) 100%);
+    }
+    body.dark #overlay { background: linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,.5) 100%); }
+
+    /* ── Particles Layer ─────────────────────────────────────────────── */
+    .particles-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+
+    /* ── Snowflakes ──────────────────────────────────────────────────── */
+    .snowflake {
+      position: absolute; top: -20px; border-radius: 50%;
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 0 6px rgba(255,255,255,.5);
+      animation: snow-fall linear infinite;
+    }
+    @keyframes snow-fall {
+      0%   { top: -20px; transform: translateX(0) rotate(0deg); opacity: 0; }
+      5%   { opacity: 1; }
+      95%  { opacity: .7; }
+      100% { top: 110vh; transform: translateX(50px) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── Clouds ──────────────────────────────────────────────────────── */
+    .cloud {
+      position: absolute; left: -320px; height: 68px; border-radius: 50px;
+      background: rgba(255,255,255,.5);
+      box-shadow: 0 8px 32px rgba(255,255,255,.12);
+      animation: cloud-drift linear infinite;
+    }
+    .cloud::before, .cloud::after { content: ""; position: absolute; border-radius: 50%; background: inherit; }
+    .cloud::before { width: 55%; height: 155%; top: -42%; left: 20%; }
+    .cloud::after  { width: 38%; height: 125%; top: -28%; right: 18%; }
+    body.dark .cloud { background: rgba(255,255,255,.15); }
+    @keyframes cloud-drift { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 420px)); } }
+
+    /* ── Sun ─────────────────────────────────────────────────────────── */
+    .sun {
+      position: absolute; top: 55px; right: 110px;
+      width: 78px; height: 78px; border-radius: 50%;
+      background: radial-gradient(circle,#fffde7 0%,#ffd54f 42%,#ffb300 100%);
+      box-shadow: 0 0 40px 12px rgba(255,213,79,.5), 0 0 80px 24px rgba(255,179,0,.25);
+      animation: sun-pulse 4s ease-in-out infinite;
+    }
+    .sun.intense {
+      width: 98px; height: 98px;
+      box-shadow: 0 0 60px 20px rgba(255,152,0,.65), 0 0 100px 40px rgba(255,87,34,.35);
+      animation: sun-pulse-intense 2.5s ease-in-out infinite;
+    }
+    .sun-ray {
+      position: absolute; width: 2px; border-radius: 2px;
+      background: linear-gradient(to bottom, rgba(255,213,79,.7), transparent);
+      transform-origin: bottom center;
+      animation: ray-flicker 3s ease-in-out infinite;
+    }
+    @keyframes sun-pulse {
+      0%,100% { box-shadow: 0 0 40px 12px rgba(255,213,79,.5),0 0 80px 24px rgba(255,179,0,.25); }
+      50%      { box-shadow: 0 0 55px 22px rgba(255,213,79,.65),0 0 105px 38px rgba(255,179,0,.38); }
+    }
+    @keyframes sun-pulse-intense {
+      0%,100% { box-shadow: 0 0 60px 20px rgba(255,152,0,.65),0 0 100px 40px rgba(255,87,34,.35); transform: scale(1); }
+      50%      { box-shadow: 0 0 85px 32px rgba(255,152,0,.85),0 0 135px 62px rgba(255,87,34,.5); transform: scale(1.05); }
+    }
+    @keyframes ray-flicker { 0%,100% { opacity: .45; } 50% { opacity: .9; } }
+
+    /* ── Heat Waves ──────────────────────────────────────────────────── */
+    .heat-wave {
+      position: absolute; left: -5%; right: -5%; height: 3px;
+      background: linear-gradient(90deg,transparent,rgba(255,150,50,.22),rgba(255,200,100,.38),rgba(255,150,50,.22),transparent);
+      border-radius: 4px; filter: blur(1px);
+      animation: heat-shimmer ease-in-out infinite alternate;
+    }
+    @keyframes heat-shimmer {
+      0%   { transform: scaleX(.92) translateY(-4px); opacity: .28; }
+      50%  { transform: scaleX(1.05) translateY(0);   opacity: .72; }
+      100% { transform: scaleX(.96) translateY(4px);  opacity: .4; }
+    }
+
+    /* ── Glass Card ──────────────────────────────────────────────────── */
+    .glass-card {
+      background: rgba(255,255,255,.13);
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 22px;
+      padding: 1.2rem 1.4rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.18);
+    }
+    body.dark .glass-card {
+      background: rgba(0,0,0,.2);
+      border-color: rgba(255,255,255,.1);
+    }
+
+    /* ── Result Card ─────────────────────────────────────────────────── */
+    .result-card {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 18px;
+      padding: 1rem 1.1rem;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: white;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .35s ease, transform .35s ease, box-shadow .2s ease;
+    }
+    .result-card.visible { opacity: 1; transform: translateY(0); }
+    .result-card:hover   { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+    .result-card.from-card { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35); }
+
+    /* ── Mood Banner ─────────────────────────────────────────────────── */
+    .mood-banner {
+      display: flex; align-items: center; gap: .75rem;
+      background: rgba(255,255,255,.11);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 14px;
+      padding: .7rem 1rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: white;
+      animation: slide-up .4s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    /* ── Action Buttons ──────────────────────────────────────────────── */
+    .action-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: 0 .8rem; height: 32px;
+      background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.26);
+      border-radius: 10px; backdrop-filter: blur(8px);
+      color: rgba(255,255,255,.82); font-size: .75rem; font-weight: 600;
+      cursor: pointer; transition: all .2s ease; font-family: inherit;
+      white-space: nowrap;
+    }
+    .action-btn:hover:not(:disabled) { background: rgba(255,255,255,.26); color: white; }
+    .action-btn:disabled { opacity: .38; cursor: not-allowed; }
+    .action-btn svg { flex-shrink: 0; }
+
+    /* ── Input & Select ──────────────────────────────────────────────── */
+    .tc-input, .tc-select {
+      height: 48px; border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.16);
+      backdrop-filter: blur(8px);
+      color: white; font-family: inherit; font-weight: 500; font-size: 1rem;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+      padding: 0 1rem;
+    }
+    .tc-input::placeholder { color: rgba(255,255,255,.38); }
+    .tc-input:focus, .tc-select:focus {
+      border-color: rgba(255,255,255,.65);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+    }
+    .tc-input.error { border-color: rgba(248,113,113,.7); box-shadow: 0 0 0 3px rgba(248,113,113,.15); }
+    .tc-select { appearance: none; cursor: pointer; padding: 0 2rem 0 .85rem; font-size: .9rem; min-width: 76px; }
+    .tc-select option { background: #1e293b; color: #f1f5f9; }
+
+    /* ── Layout helpers ──────────────────────────────────────────────── */
+    .container { position: relative; z-index: 10; max-width: 680px; margin: 0 auto; padding: 2rem 1rem; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
+    .logo-wrap { display: flex; align-items: center; gap: .75rem; }
+    .logo-icon {
+      width: 44px; height: 44px; border-radius: 18px;
+      background: rgba(255,255,255,.22); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.38);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    }
+    .logo-icon svg { color: white; }
+    h1 { font-size: 1.2rem; font-weight: 700; color: white; line-height: 1.2; text-shadow: 0 1px 4px rgba(0,0,0,.15); }
+    .subtitle { font-size: .72rem; color: rgba(255,255,255,.58); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+    .flex-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .flex-col  { display: flex; flex-direction: column; gap: .7rem; }
+    .section-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,255,255,.45); margin-bottom: .45rem; }
+
+    /* ── Gauge ───────────────────────────────────────────────────────── */
+    #gauge-needle { transition: all .48s cubic-bezier(.22,1,.36,1); }
+    #gauge-arcs path { transition: d .48s cubic-bezier(.22,1,.36,1); }
+
+    /* ── History table ───────────────────────────────────────────────── */
+    .hist-table { width: 100%; border-collapse: collapse; }
+    .hist-table th { text-align: left; padding: .45rem .65rem; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.38); border-bottom: 1px solid rgba(255,255,255,.1); }
+    .hist-table td { padding: .5rem .65rem; font-size: .8rem; color: rgba(255,255,255,.68); border-bottom: 1px solid rgba(255,255,255,.06); white-space: nowrap; }
+    .hist-table tr:last-child td { border: none; }
+    .hist-table tr:hover td { background: rgba(255,255,255,.04); }
+    .hist-table td:first-child { font-weight: 600; color: rgba(255,255,255,.88); }
+    .overflow-x { overflow-x: auto; }
+
+    /* ── Copy feedback ───────────────────────────────────────────────── */
+    .copy-btn {
+      background: none; border: none; cursor: pointer; padding: .25rem; border-radius: 6px;
+      color: rgba(255,255,255,.45); transition: all .2s; display: inline-flex; align-items: center;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.12); color: rgba(255,255,255,.85); }
+
+    /* ── Animations ──────────────────────────────────────────────────── */
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .anim-in { animation: slide-up .4s cubic-bezier(.22,1,.36,1) both; }
+
+    /* ── Error text ──────────────────────────────────────────────────── */
+    .error-text { font-size: .75rem; color: #fca5a5; margin-top: .4rem; padding-left: .25rem; }
+
+    /* ── Kbd ─────────────────────────────────────────────────────────── */
+    kbd { font-size: .68rem; font-family: monospace; background: rgba(255,255,255,.15); padding: .1rem .3rem; border-radius: 4px; }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 560px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      h1 { font-size: 1.05rem; }
+    }
+
+    /* ── Theme toggle ────────────────────────────────────────────────── */
+    #theme-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.18); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: white; transition: all .2s;
+    }
+    #theme-btn:hover { transform: scale(1.08); }
+
+    /* ── Scrollbar ───────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 10px; }
+  </style>
+</head>
+<body>
+<div id="app" class="zone-none">
+  <div id="overlay"></div>
+  <div id="particles" class="particles-layer"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-wrap">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <div>
+          <h1>Temperature Converter</h1>
+          <p class="subtitle">Interactive Climate Experience</p>
+        </div>
+      </div>
+      <button id="theme-btn" title="Toggle dark mode">
+        <svg id="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+
+    <!-- Mood Banner -->
+    <div id="mood-banner" style="display:none; margin-bottom:1rem;"></div>
+
+    <!-- Converter Card -->
+    <div class="glass-card" style="margin-bottom:.9rem;">
+      <div style="display:flex; gap:.6rem; margin-bottom:.9rem; align-items:flex-end;">
+        <div style="flex:1;">
+          <div class="section-label">Temperature &nbsp;<kbd>⌘K</kbd></div>
+          <input id="temp-input" class="tc-input" type="number" placeholder="Enter value..." autocomplete="off" style="width:100%;" />
+          <div id="error-msg" class="error-text" style="display:none;"></div>
+        </div>
+        <div>
+          <div class="section-label">Unit</div>
+          <select id="unit-select" class="tc-select">
+            <option value="celsius">°C</option>
+            <option value="fahrenheit">°F</option>
+            <option value="kelvin">K</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex-row">
+        <button class="action-btn" id="btn-swap" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+          Swap
+        </button>
+        <button class="action-btn" id="btn-reset">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset <kbd>⌘R</kbd>
+        </button>
+        <button class="action-btn" id="btn-share" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span id="share-label">Share</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Results + Gauge -->
+    <div id="results-section" style="display:none; margin-bottom:.9rem;">
+      <div class="grid-2">
+
+        <!-- Result Cards -->
+        <div class="flex-col" id="result-cards">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Gauge Card -->
+        <div class="glass-card" style="display:flex; flex-direction:column; align-items:center; gap:1rem;">
+          <div class="section-label" style="align-self:flex-start;">Temperature Gauge</div>
+          <svg id="gauge-svg" viewBox="0 0 200 130" style="width:220px; max-width:100%; user-select:none; overflow:visible;" role="img" aria-label="Temperature gauge">
+            <!-- Static background arcs -->
+            <path d="M 28.28 100 A 76 76 0 0 1 57.14 57.14" fill="none" stroke="#bfdbfe" stroke-width="13" stroke-linecap="round"/>
+            <path d="M 57.14 57.14 A 76 76 0 0 1 100 24" fill="none" stroke="#bae6fd" stroke-width="13" stroke-linecap="round"/>
+            <path d="M 100 24 A 76 76 0 0 1 142.86 57.14" fill="none" stroke="#a7f3d0" stroke-width="13" stroke-linecap="round"/>
+            <path d="M 142.86 57.14 A 76 76 0 0 1 171.72 100" fill="none" stroke="#fde68a" stroke-width="13" stroke-linecap="round"/>
+            <path d="M 171.72 100 A 76 76 0 0 1 171.72 100" fill="none" stroke="#fca5a5" stroke-width="13" stroke-linecap="round"/>
+            <!-- Active arcs - updated by JS -->
+            <g id="gauge-active-arcs"></g>
+            <!-- Needle -->
+            <line id="gauge-needle" x1="100" y1="102" x2="100" y2="44" stroke="#475569" stroke-width="2.5" stroke-linecap="round" style="transition: all .5s cubic-bezier(.22,1,.36,1);"/>
+            <circle cx="100" cy="102" r="5" fill="#475569" id="gauge-hub"/>
+            <!-- Labels -->
+            <text x="22" y="124" font-size="8" fill="rgba(255,255,255,.4)" font-family="Inter,system-ui">-60°C</text>
+            <text x="150" y="124" font-size="8" fill="rgba(255,255,255,.4)" font-family="Inter,system-ui">100°C</text>
+          </svg>
+          <div id="gauge-label" style="display:flex; align-items:center; gap:.6rem; color:white;">
+            <span id="gauge-icon" style="font-size:1.5rem;">🌡️</span>
+            <div>
+              <p id="gauge-value" style="font-size:1.2rem; font-weight:700; font-variant-numeric:tabular-nums;"></p>
+              <p id="gauge-zone-label" style="font-size:.72rem; font-weight:600; opacity:.65;"></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- History -->
+    <div id="history-section" style="display:none;">
+      <div class="glass-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem;">
+          <div style="display:flex; align-items:center; gap:.4rem;" class="section-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            History <span id="hist-count" style="color:rgba(255,255,255,.6);"></span>
+          </div>
+          <div style="display:flex; gap:.4rem;">
+            <button class="action-btn" id="btn-export" style="height:26px; font-size:.7rem; padding:0 .6rem;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="action-btn" id="btn-clear-hist" style="height:26px; font-size:.7rem; padding:0 .6rem;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Clear
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x">
+          <table class="hist-table">
+            <thead><tr><th>Input</th><th>Celsius</th><th>Fahrenheit</th><th>Kelvin</th><th>Time</th></tr></thead>
+            <tbody id="hist-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center; font-size:.72rem; color:rgba(255,255,255,.22); margin-top:1.75rem;">
+      Temperature Converter · Portfolio Project · <span id="yr"></span>
+    </p>
+  </div>
+</div>
+
+<script>
+/* ── Conversion ──────────────────────────────────────────────────────────── */
+function toCelsius(v, from) {
+  if (from === 'celsius') return v;
+  if (from === 'fahrenheit') return (v - 32) * 5 / 9;
+  return v - 273.15;
+}
+function convert(v, from) {
+  const c = toCelsius(v, from);
+  return {
+    celsius:    +c.toFixed(4),
+    fahrenheit: +(c * 9 / 5 + 32).toFixed(4),
+    kelvin:     +(c + 273.15).toFixed(4)
+  };
+}
+
+/* ── Zone data ───────────────────────────────────────────────────────────── */
+const ZONES = {
+  none:          { icon: '🌡️', label: '–',            mood: 'Enter a temperature to begin.' },
+  'extreme-cold':{ icon: '❄️', label: 'Extreme Cold',  mood: 'Freezing conditions. Bundle up and stay indoors.' },
+  cold:          { icon: '🌨️', label: 'Cool',          mood: 'Cool and crisp. A light jacket will do.' },
+  pleasant:      { icon: '🌤️', label: 'Pleasant',      mood: 'Perfect weather for outdoor activities.' },
+  hot:           { icon: '☀️', label: 'Hot',            mood: 'Summer heat. Stay hydrated and wear sunscreen.' },
+  'extreme-hot': { icon: '🔥', label: 'Extreme Heat',  mood: 'Dangerously hot. Avoid direct exposure.' }
+};
+
+function getZone(c) {
+  if (c < 0)   return 'extreme-cold';
+  if (c <= 15) return 'cold';
+  if (c <= 30) return 'pleasant';
+  if (c <= 45) return 'hot';
+  return 'extreme-hot';
+}
+
+const UNITS = [
+  { key: 'celsius',    label: 'Celsius',    symbol: '°C', desc: 'Metric — water freezes at 0°' },
+  { key: 'fahrenheit', label: 'Fahrenheit', symbol: '°F', desc: 'Imperial — water freezes at 32°' },
+  { key: 'kelvin',     label: 'Kelvin',     symbol: 'K',  desc: 'Absolute — 0 K is absolute zero' }
+];
+
+/* ── State ───────────────────────────────────────────────────────────────── */
+let currentUnit = 'celsius';
+let currentResults = null;
+let currentZone = 'none';
+let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+let history = [];
+try { history = JSON.parse(localStorage.getItem('tc-hist') || '[]'); } catch(e) {}
+
+/* ── DOM refs ────────────────────────────────────────────────────────────── */
+const app          = document.getElementById('app');
+const particles    = document.getElementById('particles');
+const tempInput    = document.getElementById('temp-input');
+const unitSelect   = document.getElementById('unit-select');
+const errorMsg     = document.getElementById('error-msg');
+const moodBanner   = document.getElementById('mood-banner');
+const resultsSec   = document.getElementById('results-section');
+const resultCards  = document.getElementById('result-cards');
+const historySec   = document.getElementById('history-section');
+const histBody     = document.getElementById('hist-body');
+const histCount    = document.getElementById('hist-count');
+const btnSwap      = document.getElementById('btn-swap');
+const btnShare     = document.getElementById('btn-share');
+const shareLabel   = document.getElementById('share-label');
+const gaugeNeedle  = document.getElementById('gauge-needle');
+const gaugeActive  = document.getElementById('gauge-active-arcs');
+const gaugeIcon    = document.getElementById('gauge-icon');
+const gaugeValue   = document.getElementById('gauge-value');
+const gaugeZone    = document.getElementById('gauge-zone-label');
+const gaugeHub     = document.getElementById('gauge-hub');
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
+function applyDark() {
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('icon-moon').style.display = isDark ? 'none'  : '';
+  document.getElementById('icon-sun').style.display  = isDark ? ''      : 'none';
+}
+applyDark();
+document.getElementById('theme-btn').addEventListener('click', () => { isDark = !isDark; applyDark(); });
+
+/* ── Particles ───────────────────────────────────────────────────────────── */
+function clearParticles() { particles.innerHTML = ''; }
+
+function makeSnowflakes() {
+  clearParticles();
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('div');
+    s.className = 'snowflake';
+    const sz = 6 + (i % 5) * 3;
+    s.style.cssText = `left:${(i*4.5+1)%100}%; width:${sz}px; height:${sz}px; animation-delay:${(i*.37)%6}s; animation-duration:${6+(i%5)*2}s; opacity:${0.5+(i%3)*.18};`;
+    particles.appendChild(s);
+  }
+}
+
+function makeClouds(count) {
+  const widths  = [180, 240, 160, 210, 290];
+  const tops    = ['7%','19%','32%','11%','25%'];
+  const delays  = [0, 8, 16, 4, 22];
+  const durs    = [30, 42, 28, 38, 50];
+  const opacs   = [0.55, 0.38, 0.5, 0.42, 0.3];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    c.style.cssText = `top:${tops[i%tops.length]}; width:${widths[i%widths.length]}px; animation-delay:${delays[i]}s; animation-duration:${durs[i]}s; opacity:${opacs[i]};`;
+    particles.appendChild(c);
+  }
+}
+
+function makeSun(intense) {
+  const sun = document.createElement('div');
+  sun.className = 'sun' + (intense ? ' intense' : '');
+  const r = intense ? 49 : 39;
+  const cx = intense ? 49 : 39;
+  const cy = intense ? 49 : 39;
+  for (let i = 0; i < 8; i++) {
+    const ray = document.createElement('div');
+    ray.className = 'sun-ray';
+    const len = intense ? 36 : 28;
+    const dist = intense ? 58 : 46;
+    const ang = i * 45 * Math.PI / 180;
+    const tx = cx + dist * Math.sin(ang) - 1;
+    const ty = cy - dist * Math.cos(ang) - len;
+    ray.style.cssText = `width:2px; height:${len}px; left:${tx}px; top:${ty}px; transform:rotate(${i*45}deg); animation-delay:${i*.15}s;`;
+    sun.appendChild(ray);
+  }
+  particles.appendChild(sun);
+}
+
+function makeHeatWaves() {
+  for (let i = 0; i < 5; i++) {
+    const w = document.createElement('div');
+    w.className = 'heat-wave';
+    w.style.cssText = `bottom:${10+i*9}%; animation-delay:${i*.55}s; animation-duration:${2.8+i*.4}s;`;
+    particles.appendChild(w);
+  }
+}
+
+function setParticles(zone) {
+  clearParticles();
+  if (zone === 'extreme-cold') { makeSnowflakes(); makeClouds(2); }
+  else if (zone === 'cold')    { makeSnowflakes(); makeClouds(3); }
+  else if (zone === 'pleasant'){ makeClouds(4); makeSun(false); }
+  else if (zone === 'hot')     { makeSun(false); makeHeatWaves(); }
+  else if (zone === 'extreme-hot') { makeSun(true); makeHeatWaves(); }
+  else { makeClouds(2); }
+}
+
+/* ── Gauge ───────────────────────────────────────────────────────────────── */
+const gaugeZoneData = [
+  { from: -135, to: -81,  fill: '#3b82f6' },
+  { from: -81,  to: -27,  fill: '#0ea5e9' },
+  { from: -27,  to:  27,  fill: '#10b981' },
+  { from:  27,  to:  81,  fill: '#f59e0b' },
+  { from:  81,  to: 135,  fill: '#ef4444' }
+];
+
+function arcPath(s, e, r) {
+  r = r || 76;
+  const rad = d => ((d - 90) * Math.PI) / 180;
+  const x1 = 100 + r * Math.cos(rad(s)), y1 = 100 + r * Math.sin(rad(s));
+  const x2 = 100 + r * Math.cos(rad(e)), y2 = 100 + r * Math.sin(rad(e));
+  const lg = Math.abs(e - s) > 180 ? 1 : 0;
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${lg} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+function updateGauge(celsius) {
+  const clamp = Math.min(Math.max(celsius, -60), 100);
+  const pct   = (clamp + 60) / 160;
+  const angle = -135 + pct * 270;
+  const rad   = (angle - 90) * Math.PI / 180;
+  const nx    = 100 + 56 * Math.cos(rad);
+  const ny    = 100 + 56 * Math.sin(rad);
+
+  gaugeNeedle.setAttribute('x2', nx.toFixed(2));
+  gaugeNeedle.setAttribute('y2', ny.toFixed(2));
+
+  gaugeActive.innerHTML = '';
+  gaugeZoneData.forEach(z => {
+    const end = Math.min(z.to, angle);
+    if (end <= z.from) return;
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', arcPath(z.from, end));
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', z.fill);
+    p.setAttribute('stroke-width', '13');
+    p.setAttribute('stroke-linecap', 'round');
+    p.style.transition = 'all .48s cubic-bezier(.22,1,.36,1)';
+    gaugeActive.appendChild(p);
+  });
+}
+
+/* ── Mood Banner ─────────────────────────────────────────────────────────── */
+function updateMood(zone, celsius) {
+  if (zone === 'none') { moodBanner.style.display = 'none'; return; }
+  const z = ZONES[zone];
+  moodBanner.innerHTML = `
+    <span style="font-size:1.6rem; line-height:1; flex-shrink:0;">${z.icon}</span>
+    <div>
+      <p style="font-size:.85rem; font-weight:700; line-height:1.2;">${z.label}</p>
+      <p style="font-size:.72rem; opacity:.65;">${z.mood}</p>
+    </div>`;
+  moodBanner.style.display = 'flex';
+}
+
+/* ── Result Cards ────────────────────────────────────────────────────────── */
+function buildResultCards(results, fromUnit) {
+  resultCards.innerHTML = '';
+  UNITS.forEach((u, i) => {
+    const isFrom = u.key === fromUnit;
+    const card = document.createElement('div');
+    card.className = 'result-card' + (isFrom ? ' from-card' : '');
+    card.style.transitionDelay = `${i * 55}ms`;
+    card.innerHTML = `
+      <div style="display:flex; align-items:flex-start; gap:.6rem;">
+        <div style="width:30px; height:30px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.8"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
+            <span style="font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; opacity:.55;">${u.label}${isFrom ? ' <span style="opacity:.7">(input)</span>' : ''}</span>
+            <button class="copy-btn" data-val="${results[u.key]}${u.symbol}" title="Copy">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <p style="font-size:1.2rem; font-weight:700; font-variant-numeric:tabular-nums;">${results[u.key]}<span style="font-size:.82rem; font-weight:500; opacity:.5; margin-left:2px;">${u.symbol}</span></p>
+          <p style="font-size:.68rem; opacity:.45; margin-top:2px; line-height:1.3;">${u.desc}</p>
+        </div>
+      </div>`;
+    resultCards.appendChild(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('visible')));
+  });
+  resultCards.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(btn.dataset.val);
+      const svg = btn.querySelector('svg');
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(() => { btn.querySelector('svg').outerHTML; btn.innerHTML = svg.outerHTML; }, 1500);
+    });
+  });
+}
+
+/* ── History ─────────────────────────────────────────────────────────────── */
+function renderHistory() {
+  if (!history.length) { historySec.style.display = 'none'; return; }
+  historySec.style.display = '';
+  histCount.textContent = history.length;
+  histBody.innerHTML = history.map(e => {
+    const from = UNITS.find(u => u.key === e.fromUnit);
+    const t = new Date(e.timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    return `<tr><td>${e.input}${from.symbol}</td><td>${e.celsius}°C</td><td>${e.fahrenheit}°F</td><td>${e.kelvin}K</td><td>${t}</td></tr>`;
+  }).join('');
+}
+renderHistory();
+
+function saveHistory() { localStorage.setItem('tc-hist', JSON.stringify(history)); }
+
+function addHistory(input, fromUnit, results) {
+  history.unshift({ id: Date.now()+'-'+Math.random(), input, fromUnit, ...results, timestamp: Date.now() });
+  if (history.length > 10) history.pop();
+  saveHistory();
+  renderHistory();
+}
+
+/* ── Main conversion ─────────────────────────────────────────────────────── */
+let convertTimer;
+function doConvert() {
+  clearTimeout(convertTimer);
+  convertTimer = setTimeout(() => {
+    const val = tempInput.value.trim();
+    const unit = unitSelect.value;
+
+    if (!val) {
+      errorMsg.style.display = 'none';
+      tempInput.classList.remove('error');
+      resultsSec.style.display = 'none';
+      moodBanner.style.display = 'none';
+      setZone('none');
+      currentResults = null;
+      btnSwap.disabled = true;
+      btnShare.disabled = true;
+      return;
+    }
+
+    const n = parseFloat(val);
+    if (isNaN(n)) {
+      errorMsg.textContent = '⚠ Please enter a valid number.';
+      errorMsg.style.display = '';
+      tempInput.classList.add('error');
+      resultsSec.style.display = 'none';
+      moodBanner.style.display = 'none';
+      setZone('none');
+      currentResults = null;
+      btnSwap.disabled = true;
+      btnShare.disabled = true;
+      return;
+    }
+
+    errorMsg.style.display = 'none';
+    tempInput.classList.remove('error');
+
+    const results = convert(n, unit);
+    currentResults = results;
+    const zone = getZone(results.celsius);
+
+    setZone(zone);
+    updateMood(zone, results.celsius);
+    buildResultCards(results, unit);
+    updateGauge(results.celsius);
+
+    const z = ZONES[zone];
+    gaugeIcon.textContent = z.icon;
+    gaugeValue.textContent = results.celsius.toFixed(2) + '°C';
+    gaugeZone.textContent = z.label;
+
+    resultsSec.style.display = '';
+    btnSwap.disabled = false;
+    btnShare.disabled = false;
+    addHistory(n, unit, results);
+  }, 0);
+}
+
+/* ── Zone switching ──────────────────────────────────────────────────────── */
+function setZone(zone) {
+  if (zone === currentZone) return;
+  app.className = 'zone-' + zone;
+  currentZone = zone;
+  setParticles(zone);
+}
+setParticles('none');
+
+/* ── Events ──────────────────────────────────────────────────────────────── */
+tempInput.addEventListener('input', doConvert);
+unitSelect.addEventListener('change', doConvert);
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  tempInput.value = '';
+  errorMsg.style.display = 'none';
+  tempInput.classList.remove('error');
+  resultsSec.style.display = 'none';
+  moodBanner.style.display = 'none';
+  currentResults = null;
+  btnSwap.disabled = true;
+  btnShare.disabled = true;
+  setZone('none');
+  tempInput.focus();
+});
+
+document.getElementById('btn-swap').addEventListener('click', () => {
+  if (!currentResults) return;
+  const order = ['celsius','fahrenheit','kelvin'];
+  const cur = unitSelect.value;
+  const next = order[(order.indexOf(cur) + 1) % 3];
+  unitSelect.value = next;
+  tempInput.value = currentResults[next];
+  doConvert();
+});
+
+btnShare.addEventListener('click', () => {
+  if (!currentResults) return;
+  const sym = UNITS.find(u => u.key === unitSelect.value).symbol;
+  navigator.clipboard.writeText(`🌡 ${tempInput.value}${sym} = ${currentResults.celsius}°C / ${currentResults.fahrenheit}°F / ${currentResults.kelvin}K`);
+  shareLabel.textContent = 'Copied!';
+  setTimeout(() => { shareLabel.textContent = 'Share'; }, 2000);
+});
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  if (!history.length) return;
+  const rows = ['Input,Celsius,Fahrenheit,Kelvin,Time',
+    ...history.map(e => {
+      const from = UNITS.find(u => u.key === e.fromUnit);
+      return `${e.input}${from.symbol},${e.celsius}°C,${e.fahrenheit}°F,${e.kelvin}K,${new Date(e.timestamp).toLocaleString()}`;
+    })
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows], { type: 'text/csv' }));
+  a.download = 'temperature-history.csv';
+  a.click();
+});
+
+document.getElementById('btn-clear-hist').addEventListener('click', () => {
+  history = [];
+  saveHistory();
+  renderHistory();
+});
+
+/* ── Keyboard shortcuts ──────────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); tempInput.focus(); tempInput.select(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'r') { e.preventDefault(); document.getElementById('btn-reset').click(); }
+});
+
+/* ── Auto focus ──────────────────────────────────────────────────────────── */
+tempInput.focus();
+</script>
+</body>
+</html>
